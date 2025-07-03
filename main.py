@@ -54,12 +54,16 @@ if __name__ == "__main__":
     # 誤差関数とハイパーパラメータ(学習率、訓練回数)の設定
     loss_func = MSELoss()
 
-    learning_rate = 0.0015
-    epochs = 150000
-    Loss_view_freq = epochs / 1500
+    # 学習率を動的に変更するためのセットアップ
+    learning_rate_list = [0.01, 0.005, 0.004, 0.003, 0.002, 0.001]
+    rate_step = 0
+    learning_rate = learning_rate_list[rate_step]
 
-    x_epochs = []
-    y_loss = []
+    epochs = 100000
+    Loss_view_freq = epochs / 100
+
+    x_epochs = [1]
+    y_loss = [1500]
 
     # 訓練ループ
     print("訓練を開始します")
@@ -84,6 +88,21 @@ if __name__ == "__main__":
             print(f"Epoch {i + 1}/{epochs}, Loss: {loss:.6f}")
             x_epochs.append(i + 1)
             y_loss.append(float(loss))
+
+            # 学習率の動的変更を行うための処理
+            if (
+                y_loss[int((i + 1) // Loss_view_freq)]
+                - y_loss[int((i + 1) // Loss_view_freq - 1)]
+                > 0
+            ):
+                rate_step += 1
+                learning_rate = learning_rate_list[rate_step]
+                print(
+                    f"learning_rateが更新されました。新しいlearning_rate={learning_rate}"
+                )
+            # print(int((i + 1) / Loss_view_freq - 1))
+            else:
+                pass
 
     print("訓練が完了しました")
     # print(x_epochs)
