@@ -34,7 +34,7 @@ if __name__ == "__main__":
     net.add(
         DenseLayer(
             input_size=1,
-            num_neurons=4,
+            num_neurons=3,
             activation_func=tanh,
             activation_derivative=tanh_derivative,
             name="Hidden Layer",
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # 出力層についての記述
     net.add(
         DenseLayer(
-            input_size=4,
+            input_size=3,
             num_neurons=1,
             activation_func=identity,
             activation_derivative=identity_derivative,
@@ -160,9 +160,24 @@ ax2.grid(True)
 # グラフ同士が重ならないようにレイアウトを自動調整
 fig.tight_layout()
 
+# 訓練後、隠れ層の出力を取得
+hidden_layer_output = net.layers[0].forward(x)
+final_output = net.layers[1].forward(hidden_layer_output)
+# 各ニューロンの出力をプロット
+plt.figure(figsize=(10, 7))
+for i in range(hidden_layer_output.shape[1]):
+    plt.plot(x, hidden_layer_output[:, i], label=f"Neuron {i + 1}")
+
+plt.title("Hidden Layer Neuron Activations")
+plt.xlabel("Input (x)")
+plt.ylabel("Activation")
+plt.legend()
+plt.grid(True)
+
 # グラフを表示
 plt.show()
-
+print(hidden_layer_output)
+print(final_output)
 """勾配再更新を今回はすべて一括で更新しているが、
 一個一個更新する手法でも試してみて、
 二つの結果を比べることでepochs-lossグラフの違いを調べる。
@@ -170,6 +185,9 @@ back_propagationにおいてoutput->hidden_layer(更新パラメーターはweig
 hidden_layer->input(更新パラメーターはweight=3, bias=1の四つ)を学習率をそれぞれ指定して交互に変更させていく学習方法にする
 つまり計算は今までの倍かかるが、より確実に丁寧にする方法を採択して学習を最適化してグラフに添わせるようにする。
 """
+# ->勾配更新は連鎖律を使って1回の順伝播で生じた最終的な誤差をもとに全パラメータの勾配を一貫した状態で計算するところにあるから、
+# 　パラメータをひとつ取り出してそれのみ更新をかけるとつじつまの合わない後進になってしまい、論理に反してしまう。
+# 　ゆえに対応としては、隠れ層から出力層への出力結果（tanh）をプロットして、それぞれのユニットが最終出力にどのような影響を与えているかを可視化。
 """学習率は動的に更新できるようなプログラムにする
 （参照するのはepochs-lossでグラフが上昇したらより小さい学習率に代わるみたいな
 cf（0.1->0.05->0.01->0.005->…））"""
