@@ -15,6 +15,15 @@ if __name__ == "__main__":
     x = np.arange(-10, 11, 1).reshape(-1, 1)
     y_true = x**2
 
+    # 入力xの正規化
+    x_min = x.min()
+    x_max = x.max()
+    x_normalized = ((x - x_min) / (x_max - x_min)) * 2 - 1
+
+    # yも[0,1]に正規化
+    y_true_min = y_true.min()
+    y_true_max = y_true.max()
+    y_true_normalized = (y_true - y_true_min) / (y_true_max -y_true_min)
     # 活性化関数とその導関数を定義
     tanh = np.tanh
 
@@ -58,21 +67,21 @@ if __name__ == "__main__":
     """このリストは数学的に設定したというよりかは感覚によるものが大きいため、
     今後数学的な理論を導入する必要ありか？"""
     learning_rate_list = [
-        0.01,
-        0.008,
-        0.006,
-        0.005,
-        0.0045,
-        0.004,
-        0.0035,
-        0.003,
-        0.0025,
-        0.002,
-        0.0015,
-        0.001,
-        0.0009,
-        0.0008,
-        0.0007,
+        1,
+        0.8,
+        0.6,
+        0.5,
+        0.45,
+        0.4,
+        0.35,
+        0.3,
+        0.25,
+        0.2,
+        0.15,
+        0.1,
+        0.09,
+        0.08,
+        0.07,
     ]
     rate_step = 0
     learning_rate = learning_rate_list[rate_step]
@@ -84,20 +93,20 @@ if __name__ == "__main__":
 
     # 動的学習率処理の都合上の初期値
     x_epochs = [1]
-    y_loss = [1500]
+    y_loss = [30]
 
     # 訓練ループ
     print("訓練を開始します")
     for i in range(epochs):
         # (1)順伝播
-        y_pred = net.forward(x)
+        y_pred = net.forward(x_normalized)
 
         # (2)誤差関数の計算
-        loss = loss_func.forward(y_pred, y_true)
+        loss = loss_func.forward(y_pred, y_true_normalized)
 
         # (3)逆伝播
         # まず損失の勾配を計算
-        grad = loss_func.backward(y_pred, y_true)
+        grad = loss_func.backward(y_pred, y_true_normalized)
         # ネットワーク全体を逆伝播
         net.backward(grad)
 
@@ -106,9 +115,10 @@ if __name__ == "__main__":
 
         # N_epochsごとに損失を表示
         if (i + 1) % Loss_view_freq == 0:
-            print(f"Epoch {i + 1}/{epochs}, Loss: {loss:.6f}")
+            true_loss = np.sqrt(loss) * (y_true_max - y_true_min)
+            print(f"Epoch {i + 1}/{epochs}, Loss: {true_loss:.6f}")
             x_epochs.append(i + 1)
-            y_loss.append(float(loss))
+            y_loss.append(float(true_loss))
 
             # 学習率の動的変更を行うための処理
             if (
@@ -124,11 +134,11 @@ if __name__ == "__main__":
             # print(int((i + 1) / Loss_view_freq - 1))
             else:
                 pass
-
+    print(rate_step)
     print("訓練が完了しました")
     # print(x_epochs)
     # print(y_loss)
-    print(min(y_loss))
+    # print(min(y_loss))
 
 # 6. 結果の可視化 (2つのグラフを描画)
 
@@ -140,7 +150,10 @@ fig, axes = plt.subplots(2, 1, figsize=(8, 12))
 # --- グラフ1: モデルの予測結果 ---
 ax1 = axes[0]  # 1番目の描画エリア
 ax1.scatter(x, y_true, s=10, label="True Data ($y=x^2$)")
-ax1.plot(x, net.forward(x), color="red", linewidth=3, label="Model Prediction")
+# モデルの予測値を取得
+y_pred_normalized = net.forward(x_normalized)
+y_pred_original_scale = y_pred_normalized * (y_true_max - y_true_min) + y_true_min
+ax1.plot(x, y_pred_original_scale, color="red", linewidth=3, label="Model Prediction")
 ax1.set_title("Neural Network Approximation of $y=x^2$")
 ax1.set_xlabel("x")
 ax1.set_ylabel("y")
@@ -161,7 +174,7 @@ ax2.grid(True)
 fig.tight_layout()
 
 # 訓練後、隠れ層の出力を取得
-hidden_layer_output = net.layers[0].forward(x)
+hidden_layer_output = net.layers[0].forward(x_normalized)
 final_output = net.layers[1].forward(hidden_layer_output)
 # 各ニューロンの出力をプロット
 plt.figure(figsize=(10, 7))
