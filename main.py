@@ -9,9 +9,7 @@ np.random.seed(42)
 if __name__ == "__main__":
     # 上のコードはこのpythonファイルがコマンドラインなどから直接実行された場合にのみこのifブロックの中のコードを実行してくださいというおまじない
     # データの準備
-    """reshape(-1, 1)によって[-10, -9,…, 10]が列数を1に固定しつつ、
-    行数については元の配列の要素数を保つように自動で計算してねという意味の指定が行われ、
-    xが21行1列の配列に調整される。"""
+    """入力xの正規化の倍率を変更して最適なものを調べておく"""
     x = np.arange(-10, 11, 1).reshape(-1, 1)
     y_true = x**2
 
@@ -23,7 +21,7 @@ if __name__ == "__main__":
     # yも[0,1]に正規化
     y_true_min = y_true.min()
     y_true_max = y_true.max()
-    y_true_normalized = (y_true - y_true_min) / (y_true_max -y_true_min)
+    y_true_normalized = (y_true - y_true_min) / (y_true_max - y_true_min)
     # 活性化関数とその導関数を定義
     tanh = np.tanh
 
@@ -67,21 +65,21 @@ if __name__ == "__main__":
     """このリストは数学的に設定したというよりかは感覚によるものが大きいため、
     今後数学的な理論を導入する必要ありか？"""
     learning_rate_list = [
-        1,
+        1.5,
+        1.3,
+        1.1,
+        1.0,
+        0.95,
+        0.9,
+        0.85,
         0.8,
+        0.7,
         0.6,
         0.5,
-        0.45,
         0.4,
-        0.35,
         0.3,
-        0.25,
         0.2,
-        0.15,
         0.1,
-        0.09,
-        0.08,
-        0.07,
     ]
     rate_step = 0
     learning_rate = learning_rate_list[rate_step]
